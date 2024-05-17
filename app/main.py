@@ -223,6 +223,7 @@ class AddressBook(UserDict):
         return "Contact deleted"
 
 
+# tests for module
 if __name__ == "__main__":
     book = AddressBook()
     print(book)
@@ -246,10 +247,10 @@ if __name__ == "__main__":
     for name, record in book.data.items():
         print(record)
 
-    # new_book = AddressBook()
+    # new_book = AddressBook()  # check singleton
 
     print(id(book))
-    # print(id(new_book))
+    # print(id(new_book))  # check singleton
 
     print("\nrecord found by phone number '5555555555'")
     print(book.find_by_phone("5555555555"))
