@@ -8,24 +8,24 @@ except ImportError:
     COLOR = False
 
 
-def check_txt(arg):
-    """_summary_
+def check_txt(arg: str):
+    """Function for easy access to class ColorTxt.
 
     Args:
-        arg (_type_): _description_
+        arg (str): Takes str to match case in class.
 
     Returns:
-        _type_: _description_
+        str: Colored or not text for output.
     """
-    output = ColorTxt() if COLOR else StandardTxt()
+    output = ColorTxt()
     return output(arg)
 
 class ColorTxt:
     """Colorized output in case of user input, output and mistakes."""
-    def __call__(self, request):
-        return self.formatted_txt(request)
+    def __call__(self, arg):
+        return self.colored_txt(arg) if COLOR else self.formatted_txt(arg)
 
-    def formatted_txt(self, request: str) -> str:
+    def colored_txt(self, request: str) -> str:
         """Colorized output in case of user input, output and mistakes.
 
     This function takes a single argument, `request` which is a string
@@ -74,13 +74,6 @@ class ColorTxt:
                 "'del [name]'\t\tto delete contact from list.\n" \
                 "'phone [name]'\t\tto review contact's phone number.\n" \
                 "'close' or 'exit'\tto exit assistant.\n"
-
-
-class StandardTxt:
-    """Non-colorized output in case of user input, output and mistakes.
-    """
-    def __call__(self, request):
-        return self.formatted_txt(request)
 
     def formatted_txt(self, request: str) -> str:
         """Non-colorized output in case of user input, output and mistakes.

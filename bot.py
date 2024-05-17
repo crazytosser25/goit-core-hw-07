@@ -52,17 +52,15 @@ def main():
                 print()
             case "del":
                 # print(f"{Fore.YELLOW}{delete_contact(contacts, args)}\n")
-                pass
+                print(contacts.delete(args))
             case "phone":
                 # print(f"{show_phone(contacts, args)}\n")
                 print(contacts.find(args))
             case "all":
-                # print(show_all(contacts))
-                pass
+                print(contacts.show_all())
             case _:
                 print(check_txt('invalid command'))
 
 
 if __name__ == "__main__":
     main()
-

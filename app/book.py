@@ -1,6 +1,7 @@
 """imports"""
 from collections import UserDict
 from datetime import datetime
+from app.functions import Decorators
 
 
 class Field:
@@ -14,14 +15,6 @@ class Field:
 
 class Name(Field):
     """Class for storing names of contacts. Str type of data."""
-
-
-class PhoneValidateError(Exception):
-    """Custom exception for validating phone number
-
-    Args:
-        Exception (_type_): text of exception
-    """
 
 
 class Phone(Field):
@@ -39,13 +32,13 @@ class Phone(Field):
 
         This method validates the format of a phone number by checking
         its length and whether it consists of digits only. Raises
-        PhoneValidateError if the phone number format is incorrect.
+        ValueError if the phone number format is incorrect.
 
         Args:
             phone (str): The phone number to validate.
         """
         if len(phone) != 10 or not phone.isdigit():
-            raise PhoneValidateError('Wrong phone format!')
+            raise ValueError('Wrong phone format!')
 
 
 class Birthday(Field):
@@ -60,41 +53,6 @@ class Birthday(Field):
             super().__init__(self.birthday)
         except ValueError as e:
             raise ValueError("Invalid date format. Use DD.MM.YYYY") from e
-
-
-# Decorators for errors check
-def validate_two_args(func):
-    """Decorator to validate functions with 2 arguments."""
-    def inner(contacts, args):
-        if len(args) != 2:
-            return 'invalid args'
-        phone = args[1]
-        if len(phone) != 10:
-            return f'invalid phone {phone}'
-        return func(contacts, args)
-
-    return inner
-
-def validate_one_arg(func):
-    """Decorator to validate functions with 1 argument."""
-    def inner(contacts, args):
-        if len(args) != 1:
-            return 'no name for search'
-        contact_name = args[0]
-        if contact_name not in contacts:
-            return 'phone not in contacts'
-        return func(contacts, contact_name)
-
-    return inner
-
-def make_record(func):
-    def inner(contacts, args):
-        new_name, new_phone = args
-        new_record = Record(new_name)
-        new_record.add_phone(new_phone)
-        return func(contacts, new_record)
-
-    return inner
 
 
 class Record:
@@ -112,7 +70,7 @@ class Record:
         self.birthday = None
 
     def __str__(self):
-        return f"Contact name: {self.name.value}, " \
+        return f"Contact name: {self.name.value.ljust(30, '.')}" \
             f"phones: {'; '.join(phone.value for phone in self.phones)}"
 
     def add_phone(self, phone_number: str) -> None:
@@ -186,6 +144,21 @@ class Record:
         del self.birthday
 
 
+def make_record(func):
+    """_summary_
+
+    Args:
+        func (_type_): _description_
+    """
+    def inner(contacts, args):
+        new_name, new_phone = args
+        new_record = Record(new_name)
+        new_record.add_phone(new_phone)
+        return func(contacts, new_record)
+
+    return inner
+
+
 class Singleton:
     """Singleton parent class for AddressBook"""
     __instance = None
@@ -211,8 +184,8 @@ class AddressBook(Singleton, UserDict):
         - find_by_phone: Find a contact record by phone number.
         - delete: Delete a contact record from the address book.
     """
-    
-    @validate_two_args
+
+    @Decorators.validate_two_args
     @make_record
     def add_record(self, user_record: Record) -> str:
         """Add a new contact record to the address book.
@@ -228,7 +201,7 @@ class AddressBook(Singleton, UserDict):
         self.data[user_record.name.value] = user_record
         return "Contact added."
 
-    @validate_one_arg
+    @Decorators.validate_one_arg
     def find(self, contact_name: str) -> str:
         """Finding a contact record by name.
 
@@ -254,6 +227,21 @@ class AddressBook(Singleton, UserDict):
                 return contact_name
         return "No contact found with this phone number"
 
+    def show_all(self) -> str:
+        """Display all the contacts.
+
+    Args:
+        contacts (dict): A dictionary containing contacts base.
+
+    Returns:
+        str: The formatted list of contacts.
+    """
+        output_of_contacts: str = ''
+        for _, phone_record in self.data.items():
+            output_of_contacts += f"{phone_record}\n"
+        return output_of_contacts
+
+    @Decorators.validate_one_arg
     def delete(self, contact_name: str) -> str:
         """Delete a contact record from the address book.
 
