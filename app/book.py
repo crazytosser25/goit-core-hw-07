@@ -3,14 +3,6 @@ from collections import UserDict
 from datetime import datetime
 
 
-class PhoneValidateError(Exception):
-    """Custom exception for validating phone number
-
-    Args:
-        Exception (_type_): text of exception
-    """
-
-
 class Field:
     """Class for storing data of str type"""
     def __init__(self, value):
@@ -22,6 +14,14 @@ class Field:
 
 class Name(Field):
     """Class for storing names of contacts. Str type of data."""
+
+
+class PhoneValidateError(Exception):
+    """Custom exception for validating phone number
+
+    Args:
+        Exception (_type_): text of exception
+    """
 
 
 class Phone(Field):
@@ -49,12 +49,52 @@ class Phone(Field):
 
 
 class Birthday(Field):
+    """_summary_
+
+    Args:
+        Field (_type_): _description_
+    """
     def __init__(self, date: str):
         try:
             self.birthday: datetime = datetime.strptime(date, '%d.%m.%Y').date()
             super().__init__(self.birthday)
         except ValueError as e:
             raise ValueError("Invalid date format. Use DD.MM.YYYY") from e
+
+
+# Decorators for errors check
+def validate_two_args(func):
+    """Decorator to validate functions with 2 arguments."""
+    def inner(contacts, args):
+        if len(args) != 2:
+            return 'invalid args'
+        phone = args[1]
+        if len(phone) != 10:
+            return f'invalid phone {phone}'
+        return func(contacts, args)
+
+    return inner
+
+def validate_one_arg(func):
+    """Decorator to validate functions with 1 argument."""
+    def inner(contacts, args):
+        if len(args) != 1:
+            return 'no name for search'
+        contact_name = args[0]
+        if contact_name not in contacts:
+            return 'phone not in contacts'
+        return func(contacts, contact_name)
+
+    return inner
+
+def make_record(func):
+    def inner(contacts, args):
+        new_name, new_phone = args
+        new_record = Record(new_name)
+        new_record.add_phone(new_phone)
+        return func(contacts, new_record)
+
+    return inner
 
 
 class Record:
@@ -146,7 +186,16 @@ class Record:
         del self.birthday
 
 
-class AddressBook(UserDict):
+class Singleton:
+    """Singleton parent class for AddressBook"""
+    __instance = None
+    def __new__(cls):
+        if not isinstance(cls.__instance, cls):
+            cls.__instance = object.__new__(cls)
+        return cls.__instance
+
+
+class AddressBook(Singleton, UserDict):
     """A simple Singleton address book implementation.
 
     This class extends the UserDict class to manage a collection of contacts.
@@ -162,13 +211,9 @@ class AddressBook(UserDict):
         - find_by_phone: Find a contact record by phone number.
         - delete: Delete a contact record from the address book.
     """
-    __instance = None
-
-    def __new__(cls):
-        if not isinstance(cls.__instance, cls):
-            cls.__instance = object.__new__(cls)
-        return cls.__instance
-
+    
+    @validate_two_args
+    @make_record
     def add_record(self, user_record: Record) -> str:
         """Add a new contact record to the address book.
 
@@ -179,10 +224,11 @@ class AddressBook(UserDict):
             str: A message indicating the status of the operation.
         """
         if user_record.name.value in self.data:
-            return "User already exists"
+            return 'contact exists'
         self.data[user_record.name.value] = user_record
-        return "Contact added"
+        return "Contact added."
 
+    @validate_one_arg
     def find(self, contact_name: str) -> str:
         """Finding a contact record by name.
 

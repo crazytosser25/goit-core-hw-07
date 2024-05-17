@@ -1,18 +1,9 @@
 """imports"""
 import re
 from pathlib import Path
-from app.main import AddressBook
-try:
-    from app.color_txt import ColorTxt
-    COLOR = True
-except ImportError:
-    from app.standard_txt import StandardTxt
-    COLOR = False
+from app.file import read_file, write_file
+from app.color import check_txt
 
-
-def check_txt(arg):
-    output = ColorTxt() if COLOR else StandardTxt()
-    return output(arg)
 
 def parse_input(user_input: str) -> tuple:
     """Split the user's input into command and arguments.
@@ -35,8 +26,8 @@ def main():
     uses the 'colorama' module to add colors to the output strings for better
     readability.
     """
-    # database = Path("contacts.json")
-    contacts = AddressBook()
+    database = Path("app/contacts.pkl")
+    contacts = read_file(database)
 
     print(check_txt('greeting'))
 
@@ -46,7 +37,7 @@ def main():
 
         match command:
             case "close" | "exit":
-                # write_file(database, contacts)
+                write_file(database, contacts)
                 print(check_txt('bye'))
                 break
             case "hello":
@@ -54,15 +45,20 @@ def main():
             case "help":
                 print(check_txt('help'))
             case "add":
-                print(f"{Fore.YELLOW}{add_contact(contacts, args)}\n")
+                # print(f"{Fore.YELLOW}{add_contact(contacts, args)}\n")
+                print(contacts.add_record(args))
             case "change":
-                print(f"{Fore.YELLOW}{change_contact(contacts, args)}\n")
+                # print(f"{Fore.YELLOW}{change_contact(contacts, args)}\n")
+                print()
             case "del":
-                print(f"{Fore.YELLOW}{delete_contact(contacts, args)}\n")
+                # print(f"{Fore.YELLOW}{delete_contact(contacts, args)}\n")
+                pass
             case "phone":
-                print(f"{show_phone(contacts, args)}\n")
+                # print(f"{show_phone(contacts, args)}\n")
+                print(contacts.find(args))
             case "all":
-                print(show_all(contacts))
+                # print(show_all(contacts))
+                pass
             case _:
                 print(check_txt('invalid command'))
 
