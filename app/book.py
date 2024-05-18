@@ -1,7 +1,7 @@
 """imports"""
 from collections import UserDict
-from datetime import datetime
-from app.functions import Decorators
+from datetime import datetime, date
+from app.functions import Decorators, adjust_for_weekend, date_to_string
 
 
 class Field:
@@ -47,9 +47,9 @@ class Birthday(Field):
     Args:
         Field (_type_): _description_
     """
-    def __init__(self, date: str):
+    def __init__(self, birth_date: str):
         try:
-            self.birthday: datetime = datetime.strptime(date, '%d.%m.%Y').date()
+            self.birthday = datetime.strptime(birth_date, '%d.%m.%Y').date()
             super().__init__(self.birthday)
         except ValueError as e:
             raise ValueError("Invalid date format. Use DD.MM.YYYY") from e
@@ -83,8 +83,9 @@ class Record:
             phone_number (str): The phone number to be added.
         """
         if phone_number in [str(phone) for phone in self.phones]:
-            raise ValueError('This phone already in list')
+            return 'This phone already in list'
         self.phones.append(Phone(phone_number))
+        return 'Phone added'
 
     def edit_phone(self, old_number: str, new_number: str):
         """Edit an existing phone number in the list.
@@ -98,13 +99,14 @@ class Record:
         """
         try:
             Phone(new_number)
-        except ValueError as e:
-            print(e)
+        except ValueError:
+            return 'New number already in list.'
 
         for number in self.phones:
             if number.value == old_number:
                 number.value = new_number
                 break
+        return 'Phone changed'
 
     def find_phone(self, phone_number: str) -> str:
         """Find a phone number in the list.
@@ -227,6 +229,32 @@ class AddressBook(Singleton, UserDict):
                 return contact_name
         return "No contact found with this phone number"
 
+    @Decorators.validate_two_args
+    def add_phone(self, contact_name, new_phone):
+        """_summary_
+
+        Args:
+            name (_type_): _description_
+            new_phone (_type_): _description_
+
+        Returns:
+            _type_: _description_
+        """
+        return self.data[contact_name].add_phone(new_phone)
+
+    @Decorators.validate_three_args
+    def change_phone(self, contact_name, old_phone, new_phone):
+        """_summary_
+
+        Args:
+            name (_type_): _description_
+            new_phone (_type_): _description_
+
+        Returns:
+            _type_: _description_
+        """
+        return self.data[contact_name].edit_phone(old_phone, new_phone)
+
     def show_all(self) -> str:
         """Display all the contacts.
 
@@ -240,6 +268,31 @@ class AddressBook(Singleton, UserDict):
         for _, phone_record in self.data.items():
             output_of_contacts += f"{phone_record}\n"
         return output_of_contacts
+
+    def get_upcoming_birthdays(self, days=7):
+        """_summary_
+
+        Args:
+            days (int, optional): _description_. Defaults to 7.
+
+        Returns:
+            _type_: _description_
+        """
+        upcoming_birthdays = []
+        today = date.today()
+
+        for user in self.data.items():
+            birthday_this_year = user["birthday"].replace(year=today.year)
+            if birthday_this_year < today:
+                birthday_this_year = user["birthday"].replace(year=today.year+1)
+
+            if 0 <= (birthday_this_year - today).days <= days:
+                birthday_this_year = adjust_for_weekend(birthday_this_year)
+
+                congratulation_date_str = date_to_string(birthday_this_year)
+                upcoming_birthdays.append({"name": user["name"], 
+                                "congratulation_date": congratulation_date_str})
+        return upcoming_birthdays
 
     @Decorators.validate_one_arg
     def delete(self, contact_name: str) -> str:

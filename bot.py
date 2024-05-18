@@ -49,7 +49,7 @@ def main():
                 print(contacts.add_record(args))
             case "change":
                 # print(f"{Fore.YELLOW}{change_contact(contacts, args)}\n")
-                print()
+                print(contacts.change_phone(*args))
             case "del":
                 # print(f"{Fore.YELLOW}{delete_contact(contacts, args)}\n")
                 print(contacts.delete(args))
