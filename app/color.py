@@ -3,12 +3,12 @@ try:
     import colorama
     from colorama import Fore
     colorama.init(autoreset=True)
-    COLOR = True
+    COLORAMA = True
 except ImportError:
-    COLOR = False
+    COLORAMA = False
 
 
-def check_txt(arg: str):
+def check_txt(arg: str) -> str:
     """Function for easy access to class ColorTxt.
 
     Args:
@@ -20,10 +20,24 @@ def check_txt(arg: str):
     output = ColorTxt()
     return output(arg)
 
+def color(args: str, chosen_color: str) -> str:
+    """Function to color text output in color if 'colorama' imported.
+    """
+    if not COLORAMA:
+        return args
+    match chosen_color:
+        case 'yellow':
+            return f"{Fore.YELLOW}{args}"
+        case 'green':
+            return f"{Fore.GREEN}{args}"
+        case 'cyan':
+            return f"{Fore.CYAN}{args}"
+
+
 class ColorTxt:
     """Colorized output in case of user input, output and mistakes."""
     def __call__(self, arg):
-        return self.colored_txt(arg) if COLOR else self.formatted_txt(arg)
+        return self.colored_txt(arg) if COLORAMA else self.formatted_txt(arg)
 
     def colored_txt(self, request: str) -> str:
         """Colorized output in case of user input, output and mistakes.

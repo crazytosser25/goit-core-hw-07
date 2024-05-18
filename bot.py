@@ -2,7 +2,7 @@
 import re
 from pathlib import Path
 from app.file import read_file, write_file
-from app.color import check_txt
+from app.color import check_txt, color
 
 
 def parse_input(user_input: str) -> tuple:
@@ -45,16 +45,12 @@ def main():
             case "help":
                 print(check_txt('help'))
             case "add":
-                # print(f"{Fore.YELLOW}{add_contact(contacts, args)}\n")
-                print(contacts.add_record(args))
+                print(color(contacts.add_record(args), 'yellow'), '\n')
             case "change":
-                # print(f"{Fore.YELLOW}{change_contact(contacts, args)}\n")
-                print(contacts.change_phone(*args))
+                print(color(contacts.change_phone(*args), 'yellow'), '\n')
             case "del":
-                # print(f"{Fore.YELLOW}{delete_contact(contacts, args)}\n")
-                print(contacts.delete(args))
+                print(color(contacts.delete(args), 'yellow'), '\n')
             case "phone":
-                # print(f"{show_phone(contacts, args)}\n")
                 print(contacts.find(args))
             case "all":
                 print(contacts.show_all())

@@ -2,6 +2,7 @@
 from collections import UserDict
 from datetime import datetime, date
 from app.functions import Decorators, adjust_for_weekend, date_to_string
+from app.color import color
 
 
 class Field:
@@ -70,8 +71,12 @@ class Record:
         self.birthday = None
 
     def __str__(self):
-        return f"Contact name: {self.name.value.ljust(30, '.')}" \
-            f"phones: {'; '.join(phone.value for phone in self.phones)}"
+        return (
+            f"{color('Contact name: ', 'cyan')}" \
+            f"{color(self.name.value, 'green').ljust(30, '.')}" \
+            f" phones: " \
+            f"{color('; '.join(phone.value for phone in self.phones), 'cyan')}"
+        )
 
     def add_phone(self, phone_number: str) -> None:
         """Add a phone number to the list of phones.
@@ -137,10 +142,10 @@ class Record:
         """
         self.phones.remove(self.find_phone(phone))
 
-    def add_birthday(self, date: str):
+    def add_birthday(self, birth_date: str):
         if self.birthday:
             print("Birthday already is")
-        self.birthday = Birthday(date)
+        self.birthday = Birthday(birth_date)
 
     def remove_birthday(self):
         del self.birthday
