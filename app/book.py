@@ -1,7 +1,9 @@
 """imports"""
 from collections import UserDict
 from datetime import datetime, date
-from app.functions import Decorators, adjust_for_weekend, date_to_string
+from app.functions import (Decorators, adjust_for_weekend,
+                        date_to_string
+                    )
 from app.color import color
 
 
@@ -144,11 +146,12 @@ class Record:
 
     def add_birthday(self, birth_date: str):
         if self.birthday:
-            print("Birthday already is")
+            return "Birthday already written"
         self.birthday = Birthday(birth_date)
+        return 'Birthday added.'
 
-    def remove_birthday(self):
-        del self.birthday
+    def show_birthday(self):
+        return self.birthday.value
 
 
 def make_record(func):
@@ -274,6 +277,23 @@ class AddressBook(Singleton, UserDict):
             output_of_contacts += f"{phone_record}\n"
         return output_of_contacts
 
+    @Decorators.validate_birthday
+    def birthday_date(self, contact_name, birth_date):
+        """_summary_
+
+        Args:
+            name (_type_): _description_
+            new_phone (_type_): _description_
+
+        Returns:
+            _type_: _description_
+        """
+        return self.data[contact_name].add_birthday(birth_date)
+
+    @Decorators.validate_one_arg
+    def show_birth_date(self, contact_name):
+        return date_to_string(self.data[contact_name].show_birthday())
+
     def get_upcoming_birthdays(self, days=7):
         """_summary_
 
@@ -295,7 +315,7 @@ class AddressBook(Singleton, UserDict):
                 birthday_this_year = adjust_for_weekend(birthday_this_year)
 
                 congratulation_date_str = date_to_string(birthday_this_year)
-                upcoming_birthdays.append({"name": user["name"], 
+                upcoming_birthdays.append({"name": user["name"],
                                 "congratulation_date": congratulation_date_str})
         return upcoming_birthdays
 

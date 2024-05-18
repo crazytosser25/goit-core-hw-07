@@ -46,6 +46,8 @@ def main():
                 print(check_txt('help'))
             case "add":
                 print(color(contacts.add_record(args), 'yellow'), '\n')
+            case "addbirthday":
+                print(color(contacts.birthday_date(args), 'yellow'), '\n')
             case "change":
                 print(color(contacts.change_phone(*args), 'yellow'), '\n')
             case "del":
@@ -54,8 +56,10 @@ def main():
                 print(contacts.find(args))
             case "all":
                 print(contacts.show_all())
+            case "showbirthday":
+                print(contacts.show_birth_date(args))
             case _:
-                print(check_txt('invalid command'))
+                print(check_txt(f"invalid command {command}"))
 
 
 if __name__ == "__main__":

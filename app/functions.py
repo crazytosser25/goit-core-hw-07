@@ -1,5 +1,5 @@
 """imports"""
-# from collections import UserDict
+# import re
 from datetime import timedelta
 # from app.book import AddressBook, Record
 
@@ -33,6 +33,21 @@ class Decorators:
         return inner
 
     @staticmethod
+    def validate_birthday(func):
+        """Decorator to validate functions with 2 arguments."""
+        def inner(contacts, args):
+            if len(args) != 2:
+                return 'invalid args'
+            name = args[0]
+            date = args[1]
+            # pattern = r"\d{2}.\d{2}.\d{4}"
+            # if re.search(date, pattern):
+            return func(contacts, name, date)
+            # return f'invalid date {date}'
+
+        return inner
+
+    @staticmethod
     def validate_three_args(func):
         """Decorator to validate functions with 3 arguments."""
         def inner(contacts, *args):
@@ -59,4 +74,8 @@ def adjust_for_weekend(birthday):
     return birthday
 
 def date_to_string(date):
-    return date.strftime("%Y.%m.%d")
+    # return type(date)
+    return date.strftime("%d.%m.%Y")
+
+# def string_to_date(date_string):
+#     return datetime.strptime(date_string, "%d.%m.%Y").date()
