@@ -1,172 +1,12 @@
 """imports"""
 from collections import UserDict
-from datetime import datetime, date
-from app.functions import (Decorators, adjust_for_weekend,
-                        date_to_string
+from datetime import date
+from app.functions import (Decorators,
+                        adjust_for_weekend,
+                        date_to_string,
+                        stringify_birthdays
                     )
-from app.color import color
-
-
-class Field:
-    """Class for storing data of str type"""
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        return str(self.value)
-
-
-class Name(Field):
-    """Class for storing names of contacts. Str type of data."""
-
-
-class Phone(Field):
-    """Class for storing list of phone numbers.
-    
-    Methods:
-        - validate_phone: Validate a phone number format.
-    """
-    def __init__(self, phone: str):
-        self.validate_phone(phone)
-        super().__init__(phone)
-
-    def validate_phone(self, phone: str) -> None:
-        """Validate a phone number format.
-
-        This method validates the format of a phone number by checking
-        its length and whether it consists of digits only. Raises
-        ValueError if the phone number format is incorrect.
-
-        Args:
-            phone (str): The phone number to validate.
-        """
-        if len(phone) != 10 or not phone.isdigit():
-            raise ValueError('Wrong phone format!')
-
-
-class Birthday(Field):
-    """_summary_
-
-    Args:
-        Field (_type_): _description_
-    """
-    def __init__(self, birth_date: str):
-        try:
-            self.birthday = datetime.strptime(birth_date, '%d.%m.%Y').date()
-            super().__init__(self.birthday)
-        except ValueError as e:
-            raise ValueError("Invalid date format. Use DD.MM.YYYY") from e
-
-
-class Record:
-    """Class for storing and processing contact records.
-    
-    Methods:
-        - add_phone: Add a phone number to the list of phones.
-        - edit_phone: Edit an existing phone number in the list.
-        - find_phone: Find a phone number in the list.
-        - remove_phone: Remove a phone number from the list.
-    """
-    def __init__(self, contact_name: str):
-        self.name = Name(contact_name)
-        self.phones = []
-        self.birthday = None
-
-    def __str__(self):
-        return (
-            f"{color('Contact name: ', 'cyan')}" \
-            f"{color(self.name.value, 'green').ljust(30, '.')}" \
-            f" phones: " \
-            f"{color('; '.join(phone.value for phone in self.phones), 'cyan')}"
-        )
-
-    def add_phone(self, phone_number: str) -> None:
-        """Add a phone number to the list of phones.
-
-        This method adds a new phone number to the existing list of phones.
-        Raises ValueError if the provided phone number is already in the list.
-
-        Args:
-            phone_number (str): The phone number to be added.
-        """
-        if phone_number in [str(phone) for phone in self.phones]:
-            return 'This phone already in list'
-        self.phones.append(Phone(phone_number))
-        return 'Phone added'
-
-    def edit_phone(self, old_number: str, new_number: str):
-        """Edit an existing phone number in the list.
-
-        This method allows you to update an existing phone number with 
-        a new one in the list of phones.
-
-        Args:
-            old_number (str): The current phone number to be replaced.
-            new_number (str): The new phone number to replace the old one.
-        """
-        try:
-            Phone(new_number)
-        except ValueError:
-            return 'New number already in list.'
-
-        for number in self.phones:
-            if number.value == old_number:
-                number.value = new_number
-                break
-        return 'Phone changed'
-
-    def find_phone(self, phone_number: str) -> str:
-        """Find a phone number in the list.
-
-        This method searches for a given phone number in the list of phones and
-        returns it if found.
-
-        Args:
-            phone_number (str): The phone number to search for.
-
-        Returns:
-            str: The found phone number if it exists in the list;
-            otherwise, returns None.
-        """
-        for number in self.phones:
-            if number.value == phone_number:
-                return phone_number
-
-    def remove_phone(self, phone: str) -> None:
-        """Remove a phone number from the list.
-
-        This method removes the specified phone number from the list of phones.
-        Raises ValueError if the provided phone number does not exist 
-        in the list.
-
-        Args:
-            phone (str): The phone number to be removed.
-        """
-        self.phones.remove(self.find_phone(phone))
-
-    def add_birthday(self, birth_date: str):
-        if self.birthday:
-            return "Birthday already written"
-        self.birthday = Birthday(birth_date)
-        return 'Birthday added.'
-
-    def show_birthday(self):
-        return self.birthday.value
-
-
-def make_record(func):
-    """_summary_
-
-    Args:
-        func (_type_): _description_
-    """
-    def inner(contacts, args):
-        new_name, new_phone = args
-        new_record = Record(new_name)
-        new_record.add_phone(new_phone)
-        return func(contacts, new_record)
-
-    return inner
+import app.record as rec
 
 
 class Singleton:
@@ -196,8 +36,8 @@ class AddressBook(Singleton, UserDict):
     """
 
     @Decorators.validate_two_args
-    @make_record
-    def add_record(self, user_record: Record) -> str:
+    @Decorators.make_record
+    def add_record(self, user_record: rec.Record) -> str:
         """Add a new contact record to the address book.
 
         Args:
@@ -239,27 +79,30 @@ class AddressBook(Singleton, UserDict):
 
     @Decorators.validate_two_args
     def add_phone(self, contact_name, new_phone):
-        """_summary_
+        """Adds a new phone number to the specified contact.
 
         Args:
-            name (_type_): _description_
-            new_phone (_type_): _description_
+            contact_name (str): The name of the contact to whom the phone
+                number will be added.
+            new_phone (str): The new phone number to add to the contact.
 
         Returns:
-            _type_: _description_
+            bool: True if the phone was successfully added, False otherwise.
         """
         return self.data[contact_name].add_phone(new_phone)
 
     @Decorators.validate_three_args
     def change_phone(self, contact_name, old_phone, new_phone):
-        """_summary_
+        """Changes an existing phone number for the specified contact.
 
         Args:
-            name (_type_): _description_
-            new_phone (_type_): _description_
+            contact_name (str): The name of the contact whose phone number
+                will be changed.
+            old_phone (str): The old phone number that needs to be replaced.
+            new_phone (str): The new phone number that will replace the old one.
 
         Returns:
-            _type_: _description_
+            bool: True if the phone was successfully changed, False otherwise.
         """
         return self.data[contact_name].edit_phone(old_phone, new_phone)
 
@@ -279,45 +122,69 @@ class AddressBook(Singleton, UserDict):
 
     @Decorators.validate_birthday
     def birthday_date(self, contact_name, birth_date):
-        """_summary_
+        """Adds a birthday date to the specified contact.
 
         Args:
-            name (_type_): _description_
-            new_phone (_type_): _description_
+            contact_name (str): The name of the contact to whom the birthday
+                date will be added.
+            birth_date (str): The birthday date to add to the contact.
+                The format should be 'DD-MM-YYYY'.
 
         Returns:
-            _type_: _description_
+            bool: True if the birthday was successfully added, False otherwise.
         """
         return self.data[contact_name].add_birthday(birth_date)
 
     @Decorators.validate_one_arg
     def show_birth_date(self, contact_name):
+        """Retrieves and returns the birthday date of the specified contact
+        as a string.
+
+        Args:
+            contact_name (str): The name of the contact whose birthday date
+                will be retrieved.
+
+        Returns:
+            str: The birthday date of the contact in string format.
+        """
         return date_to_string(self.data[contact_name].show_birthday())
 
     def get_upcoming_birthdays(self, days=7):
-        """_summary_
+        """Retrieves and returns a list of upcoming birthdays within
+        the specified number of days.
 
         Args:
-            days (int, optional): _description_. Defaults to 7.
+            days (int, optional): The number of days ahead to check for
+                upcoming birthdays. Defaults to 7.
 
         Returns:
-            _type_: _description_
+            str: A formatted string listing the upcoming birthdays within
+                the specified number of days, or a message indicating
+                no expected birthdays.
+
         """
         upcoming_birthdays = []
         today = date.today()
 
-        for user in self.data.items():
-            birthday_this_year = user["birthday"].replace(year=today.year)
-            if birthday_this_year < today:
-                birthday_this_year = user["birthday"].replace(year=today.year+1)
+        for user, _ in self.data.items():
+            birth_date = self.data[user].show_birthday()
+            try:
+                birthday_this_year = birth_date.replace(year=today.year)
+                if birthday_this_year < today:
+                    birthday_this_year = birth_date.replace(year=today.year+1)
+            except TypeError:
+                continue
 
             if 0 <= (birthday_this_year - today).days <= days:
                 birthday_this_year = adjust_for_weekend(birthday_this_year)
-
                 congratulation_date_str = date_to_string(birthday_this_year)
-                upcoming_birthdays.append({"name": user["name"],
-                                "congratulation_date": congratulation_date_str})
-        return upcoming_birthdays
+                upcoming_birthdays.append({
+                    "name": user,
+                    "congratulation_date": congratulation_date_str
+                })
+        if upcoming_birthdays:
+            return stringify_birthdays(upcoming_birthdays)
+        return 'No birthdays exspected next week.'
 
     @Decorators.validate_one_arg
     def delete(self, contact_name: str) -> str:
@@ -333,57 +200,3 @@ class AddressBook(Singleton, UserDict):
             return "Contact not found"
         del self.data[contact_name]
         return "Contact deleted"
-
-
-# tests for module
-if __name__ == "__main__":
-    book = AddressBook()
-    print(book)
-
-    john_record = Record("John")
-    john_record.add_phone("1234567890")
-    john_record.add_phone("5555555555")
-    book.add_record(john_record)
-
-    print("\nrecord of John added with 2 phones:'1234567890', '5555555555'")
-    for name, record in book.data.items():
-        print(record)
-
-
-    jane_record = Record("Jane")
-    jane_record.add_phone("9876543210")
-    book.add_record(jane_record)
-
-
-    print("\nrecord of Jane added with 1 phone:'9876543210'")
-    for name, record in book.data.items():
-        print(record)
-
-    # new_book = AddressBook()  # check singleton
-
-    print(id(book))
-    # print(id(new_book))  # check singleton
-
-    print("\nrecord found by phone number '5555555555'")
-    print(book.find_by_phone("5555555555"))
-    print("\nrecord found by phone number '9876543210'")
-    print(book.find_by_phone("9876543210"))
-    print("\nrecord found by phone number '7418529635'")
-    print(book.find_by_phone("7418529635"))
-
-    john = book.find("John")
-    john.edit_phone("1234567890", "1112223333")
-
-    print("\nphone number found in record")
-    found_phone = john.find_phone("5555555555")
-    print(f"{john.name}: {found_phone}")
-
-    print("\nrecord of John edited")
-    for name, record in book.data.items():
-        print(record)
-
-    book.delete("Jane")
-
-    print("\nrecord of Jane deleted")
-    for name, record in book.data.items():
-        print(record)

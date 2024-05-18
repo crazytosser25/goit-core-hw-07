@@ -2,7 +2,7 @@
 import re
 from pathlib import Path
 from app.file import read_file, write_file
-from app.color import check_txt, color
+from app.color import check_txt, color, command_help
 
 
 def parse_input(user_input: str) -> tuple:
@@ -43,7 +43,7 @@ def main():
             case "hello":
                 print(check_txt('hello'))
             case "help":
-                print(check_txt('help'))
+                print(command_help())
             case "add":
                 print(color(contacts.add_record(args), 'yellow'), '\n')
             case "addbirthday":
@@ -57,9 +57,11 @@ def main():
             case "all":
                 print(contacts.show_all())
             case "showbirthday":
-                print(contacts.show_birth_date(args))
+                print(color(contacts.show_birth_date(args), 'green'), '\n')
+            case "birthdays":
+                print(contacts.get_upcoming_birthdays(), '\n')
             case _:
-                print(check_txt(f"invalid command {command}"))
+                print(check_txt("invalid command"))
 
 
 if __name__ == "__main__":

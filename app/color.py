@@ -32,6 +32,23 @@ def color(args: str, chosen_color: str) -> str:
             return f"{Fore.GREEN}{args}"
         case 'cyan':
             return f"{Fore.CYAN}{args}"
+        case 'red':
+            return f"{Fore.RED}{args}"
+
+def command_help():
+    """Help for commands of bot"""
+    return "'add [name] [phone]'\t\t\tto add new contact " \
+            "(phone must be 10 digits).\n" \
+            "'add-birthday [name] [birth date]'\tto add date" \
+            "of birth (date must be in format 'DD.MM.YYYY').\n" \
+            "'all'\t\t\t\t\tto review all contacts.\n" \
+            "'birthdays'\t\t\t\tto show upcoming birthdays in 7 days.\n" \
+            "'change [name] [old phone] [new phone]'\t" \
+            "to change contact's phone number.\n" \
+            "'del [name]'\t\t\t\tto delete contact from list.\n" \
+            "'phone [name]'\t\t\t\tto review contact's phone number.\n" \
+            "'show-birthday [name]'\t\t\tto show birth date of contact.\n" \
+            "'close' or 'exit'\t\t\tto exit assistant.\n"
 
 
 class ColorTxt:
@@ -80,14 +97,6 @@ class ColorTxt:
             case 'invalid args':
                 return f"{Fore.RED}Invalid data.\n{Fore.YELLOW}You must " \
                     "give me Name and Phone-number."
-            case 'help':
-                return "'add [name] [phone]'\tto add new contact " \
-                "(phone must be 10 digits).\n" \
-                "'all'\t\t\tto review all contacts.\n" \
-                "'change [name] [phone]'\tto change contact's phone number.\n" \
-                "'del [name]'\t\tto delete contact from list.\n" \
-                "'phone [name]'\t\tto review contact's phone number.\n" \
-                "'close' or 'exit'\tto exit assistant.\n"
 
     def formatted_txt(self, request: str) -> str:
         """Non-colorized output in case of user input, output and mistakes.
@@ -130,11 +139,3 @@ class ColorTxt:
             case 'invalid args':
                 return "Invalid data.\nYou must " \
                     "give me Name and Phone-number."
-            case 'help':
-                return "'add [name] [phone]'\tto add new contact " \
-                "(phone must be 10 digits).\n" \
-                "'all'\t\t\tto review all contacts.\n" \
-                "'change [name] [phone]'\tto change contact's phone number.\n" \
-                "'del [name]'\t\tto delete contact from list.\n" \
-                "'phone [name]'\t\tto review contact's phone number.\n" \
-                "'close' or 'exit'\tto exit assistant.\n"
